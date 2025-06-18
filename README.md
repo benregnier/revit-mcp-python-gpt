@@ -191,6 +191,20 @@ Or for manual installation:
 }
 ```
 
+
+## Using with GPT Actions
+
+1. **Run the server in HTTP mode** using the FastMCP CLI:
+```bash
+FASTMCP_PORT=8000 mcp run main.py --transport streamable-http
+```
+The server listens on `http://<host>:<port>/mcp`. Set `FASTMCP_HOST` or `FASTMCP_PORT` to change the address.
+
+2. **Install the plugin files** by placing `ai-plugin.json` and `openapi.yaml` in a `.well-known` folder next to `main.py`. They will then be available at:
+```
+http://<host>:<port>/.well-known/ai-plugin.json
+http://<host>:<port>/.well-known/openapi.yaml
+```
 # Creating Your Own Tools
 
 The modular architecture of this project makes adding functionalities relatively simple. The provided LLM.txt file also gives your language model the necessary context to get started right away.
