@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Revit MCP Plugin",
+  "name_for_model": "revit_mcp",
+  "description_for_human": "Interact with Autodesk Revit models via MCP routes.",
+  "description_for_model": "Provides access to Revit model info, views, family placement and more using the MCP HTTP API.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "http://localhost:48884/.well-known/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "http://localhost:48884/images/get_view_tool.png",
+  "contact_email": "support@example.com",
+  "legal_info_url": "https://example.com/legal"
+}

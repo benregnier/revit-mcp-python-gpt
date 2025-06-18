@@ -1,0 +1,259 @@
+openapi: 3.0.1
+info:
+  title: Revit MCP API
+  description: API routes exposed by the Revit MCP pyRevit extension.
+  version: '1.0'
+servers:
+  - url: http://localhost:48884/revit_mcp
+paths:
+  /status/:
+    get:
+      summary: Check API status
+      responses:
+        '200':
+          description: Status information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  health:
+                    type: string
+                  revit_available:
+                    type: boolean
+                  document_title:
+                    type: string
+                  api_name:
+                    type: string
+  /model_info/:
+    get:
+      summary: Get detailed model information
+      responses:
+        '200':
+          description: Model details
+          content:
+            application/json:
+              schema:
+                type: object
+  /get_view/{view_name}:
+    get:
+      summary: Export a view as an image
+      parameters:
+        - in: path
+          name: view_name
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  image_data:
+                    type: string
+                  content_type:
+                    type: string
+                  view_name:
+                    type: string
+                  file_size_bytes:
+                    type: integer
+                  export_success:
+                    type: boolean
+  /list_views/:
+    get:
+      summary: List exportable views
+      responses:
+        '200':
+          description: Available views grouped by type
+          content:
+            application/json:
+              schema:
+                type: object
+  /current_view_info/:
+    get:
+      summary: Get info for the active view
+      responses:
+        '200':
+          description: Information about the current view
+          content:
+            application/json:
+              schema:
+                type: object
+  /current_view_elements/:
+    get:
+      summary: List elements visible in the active view
+      responses:
+        '200':
+          description: Elements in the view
+          content:
+            application/json:
+              schema:
+                type: object
+  /place_family/:
+    post:
+      summary: Place a family instance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                family_name:
+                  type: string
+                type_name:
+                  type: string
+                location:
+                  type: object
+                  properties:
+                    x:
+                      type: number
+                    y:
+                      type: number
+                    z:
+                      type: number
+                rotation:
+                  type: number
+                level_name:
+                  type: string
+                properties:
+                  type: object
+      responses:
+        '200':
+          description: Placement result
+          content:
+            application/json:
+              schema:
+                type: object
+  /list_families/:
+    get:
+      summary: List families in the model
+      parameters:
+        - in: query
+          name: contains
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Available families
+          content:
+            application/json:
+              schema:
+                type: object
+  /list_family_categories/:
+    get:
+      summary: List family categories
+      responses:
+        '200':
+          description: Family categories
+          content:
+            application/json:
+              schema:
+                type: object
+  /list_levels/:
+    get:
+      summary: List levels in the model
+      responses:
+        '200':
+          description: Level information
+          content:
+            application/json:
+              schema:
+                type: object
+  /color_splash/:
+    post:
+      summary: Color elements based on a parameter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category_name:
+                  type: string
+                parameter_name:
+                  type: string
+                use_gradient:
+                  type: boolean
+                custom_colors:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Coloring result
+          content:
+            application/json:
+              schema:
+                type: object
+  /clear_colors/:
+    post:
+      summary: Clear color overrides
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category_name:
+                  type: string
+      responses:
+        '200':
+          description: Clear result
+          content:
+            application/json:
+              schema:
+                type: object
+  /list_category_parameters/:
+    post:
+      summary: List parameters for a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category_name:
+                  type: string
+      responses:
+        '200':
+          description: Parameters list
+          content:
+            application/json:
+              schema:
+                type: object
+  /execute_code/:
+    post:
+      summary: Execute IronPython code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Execution result
+          content:
+            application/json:
+              schema:
+                type: object
