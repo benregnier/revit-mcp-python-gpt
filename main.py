@@ -3,7 +3,8 @@ from mcp.server.fastmcp import FastMCP, Image, Context
 import base64
 from typing import Optional, Dict, Any, Union
 
-# Create a generic MCP server for interacting with Revit
+# Create a generic MCP server for interacting with Revit. Host/port will be
+# configured later if running in HTTP mode.
 mcp = FastMCP("Revit MCP Server")
 
 # Configuration
@@ -61,4 +62,35 @@ register_tools(mcp, revit_get, revit_post, revit_image)
 
 
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    import argparse
+    import os
+
+    parser = argparse.ArgumentParser(description="Run the Revit MCP server")
+    parser.add_argument(
+        "--transport",
+        choices=["stdio", "http"],
+        default=os.getenv("MCP_TRANSPORT", "stdio"),
+        help="Communication transport to use (stdio or http)",
+    )
+    parser.add_argument(
+        "--host",
+        default=os.getenv("MCP_HOST", "0.0.0.0"),
+        help="Host for HTTP transport",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.getenv("MCP_PORT", 8000)),
+        help="Port for HTTP transport",
+    )
+    args = parser.parse_args()
+
+    if args.transport == "http":
+        mcp.settings.host = args.host
+        mcp.settings.port = args.port
+        try:
+            mcp.run(transport="http")
+        except ValueError:
+            mcp.run(transport="streamable-http")
+    else:
+        mcp.run(transport="stdio")
