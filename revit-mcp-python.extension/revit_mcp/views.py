@@ -33,7 +33,7 @@ def register_views_routes(api):
         """
         try:
             if not doc:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active Revit document"}, 
                     status=503
                 )
@@ -81,7 +81,7 @@ def register_views_routes(api):
                     except:
                         continue
                 
-                return routes.make_response(
+                return safe_make_response(
                     data={
                         "error": "View '{}' not found".format(view_name),
                         "available_views": available_views[:20]  # Limit to first 20 for readability
@@ -92,13 +92,13 @@ def register_views_routes(api):
             # Check if view can be exported
             try:
                 if hasattr(target_view, "IsTemplate") and target_view.IsTemplate:
-                    return routes.make_response(
+                    return safe_make_response(
                         data={"error": "Cannot export view templates"},
                         status=400
                     )
                     
                 if target_view.ViewType == DB.ViewType.Internal:
-                    return routes.make_response(
+                    return safe_make_response(
                         data={"error": "Cannot export internal views"},
                         status=400
                     )
@@ -133,13 +133,13 @@ def register_views_routes(api):
                 matching_files.sort(key=lambda x: os.path.getctime(x), reverse=True)
             except Exception as e:
                 logger.error("Could not list exported files: {}".format(str(e)))
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "Could not access export folder"},
                     status=500
                 )
             
             if not matching_files:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "Export failed - no image file was created"},
                     status=500
                 )
@@ -160,7 +160,7 @@ def register_views_routes(api):
                 
             except Exception as e:
                 logger.error("Could not read/encode image file: {}".format(str(e)))
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "Could not read exported image file"},
                     status=500
                 )
@@ -173,7 +173,7 @@ def register_views_routes(api):
                 except Exception as e:
                     logger.warning("Could not clean up temporary file: {}".format(str(e)))
 
-            return routes.make_response(data={
+            return safe_make_response(data={
                 "image_data": encoded_data,
                 "content_type": "image/png",
                 "view_name": view_name,
@@ -183,7 +183,7 @@ def register_views_routes(api):
 
         except Exception as e:
             logger.error("Failed to export view '{}': {}".format(view_name, str(e)))
-            return routes.make_response(
+            return safe_make_response(
                 data={"error": "Failed to export view: {}".format(str(e))},
                 status=500
             )
@@ -198,7 +198,7 @@ def register_views_routes(api):
         """
         try:
             if not doc:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active Revit document"}, 
                     status=503
                 )
@@ -260,7 +260,7 @@ def register_views_routes(api):
             # Count total exportable views
             total_views = sum(len(view_list) for view_list in views_by_type.values())
             
-            return routes.make_response(data={
+            return safe_make_response(data={
                 "views_by_type": views_by_type,
                 "total_exportable_views": total_views,
                 "status": "success"
@@ -268,7 +268,7 @@ def register_views_routes(api):
             
         except Exception as e:
             logger.error("Failed to list views: {}".format(str(e)))
-            return routes.make_response(
+            return safe_make_response(
                 data={"error": "Failed to list views: {}".format(str(e))},
                 status=500
             )
@@ -286,14 +286,14 @@ def register_views_routes(api):
         """
         try:
             if not uidoc or not uidoc.Document:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active Revit document"}, 
                     status=503
                 )
             
             current_view = uidoc.ActiveView
             if not current_view:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active view found"}, 
                     status=404
                 )
@@ -342,14 +342,14 @@ def register_views_routes(api):
             except Exception:
                 view_info["discipline"] = "Unknown"
                 
-            return routes.make_response(data={
+            return safe_make_response(data={
                 "status": "success", 
                 "view_info": view_info
             })
             
         except Exception as e:
             logger.error("Get current view info failed: {}".format(str(e)))
-            return routes.make_response(
+            return safe_make_response(
                 data={"error": "Failed to get current view info: {}".format(str(e))}, 
                 status=500
             )
@@ -368,14 +368,14 @@ def register_views_routes(api):
         """
         try:
             if not doc or not uidoc:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active Revit document"}, 
                     status=503
                 )
             
             current_view = uidoc.ActiveView
             if not current_view:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active view found"}, 
                     status=404
                 )
@@ -482,11 +482,11 @@ def register_views_routes(api):
                 "category_counts": category_counts
             }
             
-            return routes.make_response(data=result)
+            return safe_make_response(data=result)
             
         except Exception as e:
             logger.error("Get current view elements failed: {}".format(str(e)))
-            return routes.make_response(
+            return safe_make_response(
                 data={"error": "Failed to get current view elements: {}".format(str(e))}, 
                 status=500
             )

@@ -5,6 +5,7 @@ Handles API status and health check endpoints
 """
 
 from pyrevit import routes
+from utils import safe_make_response
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,7 +26,7 @@ def register_status_routes(api):
             
             doc = revit.doc
             if doc:
-                return routes.make_response(data={
+                return safe_make_response(data={
                     "status": "active",
                     "health": "healthy",
                     "revit_available": True,
@@ -33,7 +34,7 @@ def register_status_routes(api):
                     "api_name": "revit_mcp"
                 })
             else:
-                return routes.make_response(data={
+                return safe_make_response(data={
                     "status": "unhealthy", 
                     "revit_available": False,
                     "error": "No active Revit document",
@@ -42,7 +43,7 @@ def register_status_routes(api):
                 
         except Exception as e:
             logger.error("Health check failed:{}".format(str(e)))
-            return routes.make_response(data={
+            return safe_make_response(data={
                 "status": "unhealthy",
                 "revit_available": False, 
                 "error": str(e),

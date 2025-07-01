@@ -4,6 +4,7 @@ Code Execution Module for Revit MCP
 Handles direct execution of IronPython code in Revit context.
 """
 from pyrevit import routes, revit, DB
+from utils import safe_make_response
 import json
 import logging
 import sys
@@ -39,7 +40,7 @@ def register_code_execution_routes(api):
             description = data.get("description", "Code execution")
 
             if not code_to_execute:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No code provided"}, status=400
                 )
 
@@ -79,7 +80,7 @@ def register_code_execution_routes(api):
                 # Commit the transaction
                 t.Commit()
 
-                return routes.make_response(
+                return safe_make_response(
                     data={
                         "status": "success",
                         "description": description,
@@ -106,7 +107,7 @@ def register_code_execution_routes(api):
                 logger.error("Code execution failed: {}".format(str(exec_error)))
                 logger.error("Traceback: {}".format(error_traceback))
 
-                return routes.make_response(
+                return safe_make_response(
                     data={
                         "status": "error",
                         "error": str(exec_error),
@@ -118,6 +119,6 @@ def register_code_execution_routes(api):
 
         except Exception as e:
             logger.error("Execute code request failed: {}".format(str(e)))
-            return routes.make_response(data={"error": str(e)}, status=500)
+            return safe_make_response(data={"error": str(e)}, status=500)
 
     logger.info("Code execution routes registered successfully.")

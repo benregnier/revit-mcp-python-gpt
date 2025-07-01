@@ -7,7 +7,7 @@ Provides sheet listing functionality
 from pyrevit import routes, revit, DB
 import logging
 
-from utils import get_element_name_safe
+from utils import get_element_name_safe, safe_make_response
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ def register_sheet_routes(api):
         """Get a list of all sheets in the current Revit model"""
         try:
             if not doc:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active Revit document"},
                     status=503
                 )
@@ -50,7 +50,7 @@ def register_sheet_routes(api):
 
             sheets_info.sort(key=lambda x: (x["number"], x["name"]))
 
-            return routes.make_response(data={
+            return safe_make_response(data={
                 "sheets": sheets_info,
                 "total_sheets": len(sheets_info),
                 "status": "success"
@@ -58,7 +58,7 @@ def register_sheet_routes(api):
 
         except Exception as e:
             logger.error("Failed to list sheets: {}".format(str(e)))
-            return routes.make_response(
+            return safe_make_response(
                 data={"error": "Failed to list sheets: {}".format(str(e))},
                 status=500
             )
@@ -70,7 +70,7 @@ def register_sheet_routes(api):
         """Get detailed information about a single sheet by sheet number"""
         try:
             if not doc:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active Revit document"},
                     status=503,
                 )
@@ -93,7 +93,7 @@ def register_sheet_routes(api):
                     continue
 
             if not sheet:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "Sheet {} not found".format(sheet_number)},
                     status=404,
                 )
@@ -135,7 +135,7 @@ def register_sheet_routes(api):
             except Exception as e:
                 logger.warning("Failed to collect sheet elements: %s", str(e))
 
-            return routes.make_response(
+            return safe_make_response(
                 data={
                     "sheet_number": sheet.SheetNumber,
                     "sheet_name": get_element_name_safe(sheet),
@@ -148,7 +148,7 @@ def register_sheet_routes(api):
 
         except Exception as e:
             logger.error("Failed to get sheet info: %s", str(e))
-            return routes.make_response(
+            return safe_make_response(
                 data={"error": "Failed to get sheet info: {}".format(str(e))},
                 status=500,
             )
