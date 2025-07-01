@@ -6,6 +6,11 @@ Provides sheet listing functionality
 
 from pyrevit import routes, revit, DB
 import logging
+import json
+import tempfile
+import os
+import base64
+from System.Collections.Generic import List
 
 from utils import get_element_name_safe
 
@@ -150,5 +155,128 @@ def register_sheet_routes(api):
             logger.error("Failed to get sheet info: %s", str(e))
             return routes.make_response(
                 data={"error": "Failed to get sheet info: {}".format(str(e))},
+                status=500,
+            )
+
+    @api.route('/export_sheets_pdf/', methods=["POST"])
+    def export_sheets_pdf(doc, request):
+        """Export specified sheets to a combined PDF and return the data."""
+
+        try:
+            if not doc:
+                return routes.make_response(
+                    data={"error": "No active Revit document"},
+                    status=503,
+                )
+
+            if not request or not request.data:
+                return routes.make_response(
+                    data={"error": "No data provided"},
+                    status=400,
+                )
+
+            data = request.data
+            if isinstance(data, str):
+                try:
+                    data = json.loads(data)
+                except Exception as json_err:
+                    return routes.make_response(
+                        data={"error": "Invalid JSON format: {}".format(str(json_err))},
+                        status=400,
+                    )
+
+            if not isinstance(data, dict):
+                return routes.make_response(
+                    data={"error": "Invalid data format"},
+                    status=400,
+                )
+
+            sheet_entries = data.get("sheets") or []
+            if not isinstance(sheet_entries, list) or not sheet_entries:
+                return routes.make_response(
+                    data={"error": "No sheets specified"},
+                    status=400,
+                )
+
+            # Collect sheets
+            all_sheets = (
+                DB.FilteredElementCollector(doc)
+                .OfCategory(DB.BuiltInCategory.OST_Sheets)
+                .WhereElementIsNotElementType()
+                .ToElements()
+            )
+
+            sheets_by_number = {s.SheetNumber: s for s in all_sheets}
+            sheets_by_id = {s.Id.IntegerValue: s for s in all_sheets}
+
+            target_sheets = []
+            for entry in sheet_entries:
+                sheet = None
+                if isinstance(entry, int) or (isinstance(entry, str) and str(entry).isdigit()):
+                    try:
+                        sheet_id = int(entry)
+                        sheet = sheets_by_id.get(sheet_id)
+                    except Exception:
+                        sheet = None
+                else:
+                    sheet = sheets_by_number.get(str(entry))
+
+                if sheet:
+                    target_sheets.append(sheet)
+
+            if not target_sheets:
+                return routes.make_response(
+                    data={"error": "No matching sheets found"},
+                    status=404,
+                )
+
+            logger.info("Exporting %s sheets to PDF", len(target_sheets))
+
+            pm = doc.PrintManager
+            pm.PrintRange = DB.PrintRange.Select
+            pm.PrintToFile = True
+            pm.CombinedFile = True
+
+            vss = pm.ViewSheetSetting
+            view_ids = List[DB.ElementId]()
+            for sheet in target_sheets:
+                view_ids.Add(sheet.Id)
+            vss.CurrentViewSheetSet.Views = view_ids
+
+            output_folder = tempfile.gettempdir()
+            output_path = os.path.join(output_folder, "MCP_Sheets.pdf")
+            pm.PrintToFileName = output_path
+
+            pm.Apply()
+            pm.SubmitPrint()
+
+            if not os.path.exists(output_path):
+                return routes.make_response(
+                    data={"error": "PDF was not created"},
+                    status=500,
+                )
+
+            with open(output_path, "rb") as f:
+                pdf_data = f.read()
+
+            encoded_data = base64.b64encode(pdf_data).decode("utf-8")
+
+            try:
+                os.remove(output_path)
+            except Exception:
+                pass
+
+            return routes.make_response(
+                data={
+                    "pdf_data": encoded_data,
+                    "sheets_exported": len(target_sheets),
+                    "status": "success",
+                }
+            )
+
+        except Exception as e:
+            logger.error("Failed to export sheets to PDF: %s", str(e))
+            return routes.make_response(
+                data={"error": "Failed to export sheets: {}".format(str(e))},
                 status=500,
             )

@@ -3,7 +3,7 @@
 from mcp.server.fastmcp import Context
 
 
-def register_model_tools(mcp, revit_get):
+def register_model_tools(mcp, revit_get, revit_post):
     """Register model structure tools"""
     
     @mcp.tool()
@@ -21,3 +21,9 @@ def register_model_tools(mcp, revit_get):
         """Get detailed information about a sheet by number"""
         endpoint = f"/sheet_info/{sheet_number}"
         return await revit_get(endpoint, ctx)
+
+    @mcp.tool()
+    async def export_sheets_pdf(sheets: list, ctx: Context = None) -> str:
+        """Export specified sheets to a PDF and return encoded data"""
+        payload = {"sheets": sheets}
+        return await revit_post("/export_sheets_pdf/", payload, ctx)
