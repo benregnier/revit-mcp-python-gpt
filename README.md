@@ -56,6 +56,8 @@ It contains:
 | `get_revit_status` | ✅ Implemented | Status & Connectivity | Check if the Revit MCP API is active and responding |
 | `get_revit_model_info` | ✅ Implemented | Model Information | Get comprehensive information about the current Revit model |
 | `list_levels` | ✅ Implemented | Model Information | Get all levels with elevation information |
+| `list_sheets` | ✅ Implemented | Model Information | Get a list of all sheets in the model |
+| `get_sheet_info` | ✅ Implemented | Model Information | Get detailed information about a specific sheet |
 | `get_revit_view` | ✅ Implemented | View & Image | Export a specific Revit view as an image |
 | `list_revit_views` | ✅ Implemented | View & Image | Get a list of all exportable views organized by type |
 | `place_family` | ✅ Implemented | Family & Placement | Place a family instance at specified location with custom properties |
