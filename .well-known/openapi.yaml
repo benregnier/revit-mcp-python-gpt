@@ -257,3 +257,30 @@ paths:
             application/json:
               schema:
                 type: object
+
+  /export_sheets_pdf/:
+    post:
+      summary: Export selected sheets to a PDF
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sheets:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: PDF export result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pdf_data:
+                    type: string
+                  sheets_exported:
+                    type: integer

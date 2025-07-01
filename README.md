@@ -58,6 +58,7 @@ It contains:
 | `list_levels` | ✅ Implemented | Model Information | Get all levels with elevation information |
 | `list_sheets` | ✅ Implemented | Model Information | Get a list of all sheets in the model |
 | `get_sheet_info` | ✅ Implemented | Model Information | Get detailed information about a specific sheet |
+| `export_sheets_pdf` | ✅ Implemented | Model Information | Export one or more sheets to a combined PDF |
 | `get_revit_view` | ✅ Implemented | View & Image | Export a specific Revit view as an image |
 | `list_revit_views` | ✅ Implemented | View & Image | Get a list of all exportable views organized by type |
 | `place_family` | ✅ Implemented | Family & Placement | Place a family instance at specified location with custom properties |
