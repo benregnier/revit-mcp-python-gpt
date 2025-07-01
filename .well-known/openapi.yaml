@@ -258,6 +258,81 @@ paths:
               schema:
                 type: object
 
+  /list_sheets/:
+    get:
+      summary: List sheets in the model
+      responses:
+        '200':
+          description: Available sheets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sheets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        number:
+                          type: string
+                        name:
+                          type: string
+                        id:
+                          type: integer
+                  total_sheets:
+                    type: integer
+                  status:
+                    type: string
+  /sheet_info/{sheet_number}:
+    get:
+      summary: Get detailed info about a sheet
+      parameters:
+        - in: path
+          name: sheet_number
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sheet details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sheet_number:
+                    type: string
+                  sheet_name:
+                    type: string
+                  views:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        type:
+                          type: string
+                  text_notes:
+                    type: array
+                    items:
+                      type: string
+                  elements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        category:
+                          type: string
+                  status:
+                    type: string
   /export_sheets_pdf/:
     post:
       summary: Export selected sheets to a PDF
