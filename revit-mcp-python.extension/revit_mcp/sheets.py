@@ -164,13 +164,13 @@ def register_sheet_routes(api):
 
         try:
             if not doc:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active Revit document"},
                     status=503,
                 )
 
             if not request or not request.data:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No data provided"},
                     status=400,
                 )
@@ -180,20 +180,20 @@ def register_sheet_routes(api):
                 try:
                     data = json.loads(data)
                 except Exception as json_err:
-                    return routes.make_response(
+                    return safe_make_response(
                         data={"error": "Invalid JSON format: {}".format(str(json_err))},
                         status=400,
                     )
 
             if not isinstance(data, dict):
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "Invalid data format"},
                     status=400,
                 )
 
             sheet_entries = data.get("sheets") or []
             if not isinstance(sheet_entries, list) or not sheet_entries:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No sheets specified"},
                     status=400,
                 )
@@ -225,7 +225,7 @@ def register_sheet_routes(api):
                     target_sheets.append(sheet)
 
             if not target_sheets:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No matching sheets found"},
                     status=404,
                 )
@@ -251,7 +251,7 @@ def register_sheet_routes(api):
             pm.SubmitPrint()
 
             if not os.path.exists(output_path):
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "PDF was not created"},
                     status=500,
                 )
@@ -266,7 +266,7 @@ def register_sheet_routes(api):
             except Exception:
                 pass
 
-            return routes.make_response(
+            return safe_make_response(
                 data={
                     "pdf_data": encoded_data,
                     "sheets_exported": len(target_sheets),
@@ -276,7 +276,7 @@ def register_sheet_routes(api):
 
         except Exception as e:
             logger.error("Failed to export sheets to PDF: %s", str(e))
-            return routes.make_response(
+            return safe_make_response(
                 data={"error": "Failed to export sheets: {}".format(str(e))},
                 status=500,
             )
