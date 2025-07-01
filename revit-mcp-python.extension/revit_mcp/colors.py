@@ -9,7 +9,7 @@ import json
 import logging
 import random
 from collections import defaultdict
-from .utils import normalize_string
+from .utils import normalize_string, safe_make_response
 
 logger = logging.getLogger(__name__)
 
@@ -966,7 +966,7 @@ def register_color_routes(api):
             custom_colors = data.get("custom_colors", None)
 
             if not category_name or not parameter_name:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "category_name and parameter_name are required"},
                     status=400,
                 )
@@ -975,11 +975,11 @@ def register_color_routes(api):
                 doc, category_name, parameter_name, use_gradient, custom_colors
             )
 
-            return routes.make_response(data=result)
+            return safe_make_response(data=result)
 
         except Exception as e:
             logger.error("Error in color_splash route: %s", e)
-            return routes.make_response(data={"error": str(e)}, status=500)
+            return safe_make_response(data={"error": str(e)}, status=500)
 
     @api.route("/clear_colors/", methods=["POST"])
     def clear_colors(doc, request):
@@ -1001,17 +1001,17 @@ def register_color_routes(api):
             category_name = data.get("category_name")
 
             if not category_name:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "category_name is required"}, status=400
                 )
 
             result = clear_element_colors(doc, category_name)
 
-            return routes.make_response(data=result)
+            return safe_make_response(data=result)
 
         except Exception as e:
             logger.error("Error in clear_colors route: %s", e)
-            return routes.make_response(data={"error": str(e)}, status=500)
+            return safe_make_response(data={"error": str(e)}, status=500)
 
     @api.route("/list_category_parameters/", methods=["POST"])
     def list_parameters(doc, request):
@@ -1033,17 +1033,17 @@ def register_color_routes(api):
             category_name = data.get("category_name")
 
             if not category_name:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "category_name is required"}, status=400
                 )
 
             result = list_category_parameters(doc, category_name)
 
-            return routes.make_response(data=result)
+            return safe_make_response(data=result)
 
         except Exception as e:
             logger.error("Error in list_category_parameters route: %s", e)
-            return routes.make_response(data={"error": str(e)}, status=500)
+            return safe_make_response(data={"error": str(e)}, status=500)
 
 
 def get_numeric_parameter_raw_value(param):

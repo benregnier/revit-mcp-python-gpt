@@ -122,3 +122,60 @@ def find_family_symbol_safely(doc, target_family_name, target_type_name=None, ca
             str(e), traceback.format_exc()
         ))
         return None
+
+
+# ---- Response Sanitization Helpers ----
+
+try:
+    basestring  # type: ignore
+except NameError:  # Python 3
+    basestring = (str, bytes)  # type: ignore
+
+try:
+    unicode  # type: ignore
+except NameError:  # Python 3
+    unicode = str  # type: ignore
+
+
+def _sanitize_text(text):
+    """Return a Unicode string stripped of non-ASCII characters."""
+    if text is None:
+        return u""
+    try:
+        if isinstance(text, bytes):
+            try:
+                text = text.decode("utf-8")
+            except Exception:
+                text = text.decode("cp1252", "ignore")
+        elif not isinstance(text, unicode):
+            text = unicode(text)
+    except Exception:
+        try:
+            text = unicode(str(text), "utf-8", "ignore")
+        except Exception:
+            text = unicode(str(text))
+
+    import re
+    cleaned = re.sub(u"[^\x20-\x7E]", u"", text)
+    return cleaned.strip()
+
+
+def sanitize_data(data):
+    """Recursively sanitize data structures for JSON serialization."""
+    if isinstance(data, dict):
+        return {sanitize_data(k): sanitize_data(v) for k, v in data.items()}
+    elif isinstance(data, (list, tuple, set)):
+        return [sanitize_data(i) for i in data]
+    elif isinstance(data, basestring) or isinstance(data, bytes):
+        return _sanitize_text(data)
+    else:
+        return data
+
+
+def safe_make_response(*args, **kwargs):
+    """Wrapper around routes.make_response that sanitizes response data."""
+    if "data" in kwargs:
+        kwargs["data"] = sanitize_data(kwargs["data"])
+    elif args:
+        args = (sanitize_data(args[0]),) + args[1:]
+    return routes.make_response(*args, **kwargs)

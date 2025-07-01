@@ -32,8 +32,8 @@ def register_model_info_routes(api):
         try:
             doc = revit.doc
             if not doc:
-                return routes.make_response(
-                    data={"error": "No active Revit document"}, 
+                return safe_make_response(
+                    data={"error": "No active Revit document"},
                     status=503
                 )
 
@@ -290,12 +290,12 @@ def register_model_info_routes(api):
                 }
             }
 
-            return routes.make_response(data=model_data)
+            return safe_make_response(data=model_data)
             
         except Exception as e:
             logger.error("Failed to get model info: {}".format(str(e)))
-            return routes.make_response(
-                data={"error": "Failed to retrieve model information: {}".format(str(e))}, 
+            return safe_make_response(
+                data={"error": "Failed to retrieve model information: {}".format(str(e))},
                 status=500
             )
     

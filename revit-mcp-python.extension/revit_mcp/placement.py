@@ -36,14 +36,14 @@ def register_placement_routes(api):
         """
         try:
             if not doc:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active Revit document"}, 
                     status=503
                 )
             
             # Parse request data
             if not request or not request.data:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No data provided or invalid request format"},
                     status=400
                 )
@@ -54,7 +54,7 @@ def register_placement_routes(api):
                 try:
                     data = json.loads(request.data)
                 except Exception as json_err:
-                    return routes.make_response(
+                    return safe_make_response(
                         data={"error": "Invalid JSON format: {}".format(str(json_err))},
                         status=400
                     )
@@ -63,7 +63,7 @@ def register_placement_routes(api):
                 
             # Validate data structure
             if not data or not isinstance(data, dict):
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "Invalid data format - expected JSON object"},
                     status=400
                 )
@@ -78,14 +78,14 @@ def register_placement_routes(api):
             
             # Basic validation
             if not family_name:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No family_name provided"},
                     status=400
                 )
                 
             # Validate location
             if not location or not all(k in location for k in ["x", "y", "z"]):
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "Invalid location - must include x, y, z coordinates"},
                     status=400
                 )
@@ -111,7 +111,7 @@ def register_placement_routes(api):
                 except:
                     available_families = ["Could not retrieve family list"]
                 
-                return routes.make_response(
+                return safe_make_response(
                     data={
                         "error": "Family type not found: {} - {}".format(family_name, type_name or "Any"),
                         "available_families": available_families[:20]  # Show first 20
@@ -137,7 +137,7 @@ def register_placement_routes(api):
                         continue
                 
                 if not target_level:
-                    return routes.make_response(
+                    return safe_make_response(
                         data={"error": "Level not found: {}".format(level_name)},
                         status=404
                     )
@@ -150,7 +150,7 @@ def register_placement_routes(api):
                     float(location["z"])
                 )
             except (ValueError, TypeError) as coord_error:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "Invalid coordinates: {}".format(str(coord_error))},
                     status=400
                 )
@@ -264,7 +264,7 @@ def register_placement_routes(api):
                     "properties_failed": properties_failed
                 }
                 
-                return routes.make_response(data=response_data)
+                return safe_make_response(data=response_data)
                     
             except Exception as tx_error:
                 # Roll back the transaction if something went wrong
@@ -276,7 +276,7 @@ def register_placement_routes(api):
         except Exception as e:
             logger.error("Failed to place family: {}".format(str(e)))
             error_trace = traceback.format_exc()
-            return routes.make_response(
+            return safe_make_response(
                 data={"error": str(e), "traceback": error_trace},
                 status=500
             )
@@ -290,7 +290,7 @@ def register_placement_routes(api):
         """
         try:
             if not doc:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active Revit document"}, 
                     status=503
                 )
@@ -313,14 +313,14 @@ def register_placement_routes(api):
                     })
                 except Exception:
                     continue
-            return routes.make_response(data={
+            return safe_make_response(data={
                 "families": families,
                 "truncated_total": len(families),
                 "status": "success"
             })
         except Exception as e:
             logger.error("Failed to list families: {}".format(str(e)))
-            return routes.make_response(
+            return safe_make_response(
                 data={"error": "Failed to list families: {}".format(str(e))},
                 status=500
             )
@@ -336,7 +336,7 @@ def register_placement_routes(api):
         """
         try:
             if not doc:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active Revit document"}, 
                     status=503
                 )
@@ -370,7 +370,7 @@ def register_placement_routes(api):
             # Sort by name
             sorted_categories = dict(sorted(categories.items()))
             
-            return routes.make_response(data={
+            return safe_make_response(data={
                 "categories": sorted_categories,
                 "total_categories": len(sorted_categories),
                 "status": "success"
@@ -378,7 +378,7 @@ def register_placement_routes(api):
             
         except Exception as e:
             logger.error("Failed to list family categories: {}".format(str(e)))
-            return routes.make_response(
+            return safe_make_response(
                 data={"error": "Failed to list family categories: {}".format(str(e))},
                 status=500
             )
@@ -393,7 +393,7 @@ def register_placement_routes(api):
         """
         try:
             if not doc:
-                return routes.make_response(
+                return safe_make_response(
                     data={"error": "No active Revit document"}, 
                     status=503
                 )
@@ -426,7 +426,7 @@ def register_placement_routes(api):
             # Sort by elevation
             levels_info.sort(key=lambda x: x["elevation"])
             
-            return routes.make_response(data={
+            return safe_make_response(data={
                 "levels": levels_info,
                 "total_levels": len(levels_info),
                 "status": "success"
@@ -434,7 +434,7 @@ def register_placement_routes(api):
             
         except Exception as e:
             logger.error("Failed to list levels: {}".format(str(e)))
-            return routes.make_response(
+            return safe_make_response(
                 data={"error": "Failed to list levels: {}".format(str(e))},
                 status=500
             )
