@@ -415,8 +415,10 @@ The current implementation provides these tools organized by category:
 - **get_revit_status**: Check if the Revit MCP API is active and responding
 - **get_revit_model_info**: Get comprehensive information about the current Revit model
 
-### **Model Information Tools**  
+### **Model Information Tools**
 - **list_levels**: Get all levels with elevation information in the current Revit model
+- **list_sheets**: Get a list of all sheets in the current Revit model
+- **get_sheet_info**: Get detailed information about a sheet by number
 
 ### **View & Image Tools**
 - **get_revit_view**: Export a specific Revit view as an image
@@ -459,9 +461,11 @@ The pyRevit extension exposes these HTTP endpoints under `http://localhost:48884
 ### **Status Endpoints**
 - `GET /status/` - Health check and API status
 
-### **Model Information Endpoints**  
+### **Model Information Endpoints**
 - `GET /model_info/` - Comprehensive model information
 - `GET /list_levels/` - Get all levels with elevation information
+- `GET /list_sheets/` - Get all sheets in the current model
+- `GET /sheet_info/<sheet_number>` - Get detailed information about a specific sheet
 
 ### **View Endpoints**
 - `GET /get_view/<view_name>` - Export specific view as PNG image
