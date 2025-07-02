@@ -232,23 +232,42 @@ def register_sheet_routes(api):
 
             logger.info("Exporting %s sheets to PDF", len(target_sheets))
 
-            pm = doc.PrintManager
-            pm.PrintRange = DB.PrintRange.Select
-            pm.PrintToFile = True
-            pm.CombinedFile = True
-
-            vss = pm.ViewSheetSetting
             view_ids = List[DB.ElementId]()
             for sheet in target_sheets:
                 view_ids.Add(sheet.Id)
-            vss.CurrentViewSheetSet.Views = view_ids
 
             output_folder = tempfile.gettempdir()
-            output_path = os.path.join(output_folder, "MCP_Sheets.pdf")
-            pm.PrintToFileName = output_path
+            pdf_basename = "MCP_Sheets"
+            output_path = os.path.join(output_folder, pdf_basename + ".pdf")
 
-            pm.Apply()
-            pm.SubmitPrint()
+            # Use Revit's PDFExportOptions API instead of PrintManager
+            pdf_options = DB.PDFExportOptions()
+            try:
+                pdf_options.FileName = pdf_basename
+            except Exception:
+                pass
+            try:
+                pdf_options.Combine = True
+            except Exception:
+                pass
+
+            # Some Revit versions require specifying the export range
+            try:
+                pdf_options.ExportRange = DB.ExportRange.SetOfViews
+            except Exception:
+                pass
+
+            try:
+                pdf_options.ViewIdSet = view_ids
+            except Exception:
+                # Older API uses SetViewsAndSheets method
+                try:
+                    pdf_options.SetViewsAndSheets(view_ids)
+                except Exception:
+                    pass
+
+            # Perform the export using Document.Export
+            doc.Export(output_folder, view_ids, pdf_options)
 
             if not os.path.exists(output_path):
                 return safe_make_response(
