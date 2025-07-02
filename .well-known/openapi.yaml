@@ -74,6 +74,34 @@ paths:
             application/json:
               schema:
                 type: object
+
+  /sheet_image/{sheet_number}:
+    get:
+      summary: Export a sheet as an image
+      parameters:
+        - in: path
+          name: sheet_number
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  image_data:
+                    type: string
+                  content_type:
+                    type: string
+                  sheet_number:
+                    type: string
+                  file_size_bytes:
+                    type: integer
+                  export_success:
+                    type: boolean
   /current_view_info/:
     get:
       summary: Get info for the active view
