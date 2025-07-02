@@ -61,6 +61,7 @@ It contains:
 | `export_sheets_pdf` | ✅ Implemented | Model Information | Export one or more sheets to a combined PDF |
 | `get_revit_view` | ✅ Implemented | View & Image | Export a specific Revit view as an image |
 | `list_revit_views` | ✅ Implemented | View & Image | Get a list of all exportable views organized by type |
+| `get_sheet_image` | ✅ Implemented | View & Image | Export a sheet view as an image |
 | `place_family` | ✅ Implemented | Family & Placement | Place a family instance at specified location with custom properties |
 | `list_families` | ✅ Implemented | Family & Placement | Get a flat list of available family types (with filtering) |
 | `list_family_categories` | ✅ Implemented | Family & Placement | Get a list of all family categories in the model |

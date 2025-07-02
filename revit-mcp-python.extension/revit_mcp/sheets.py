@@ -12,7 +12,7 @@ import os
 import base64
 from System.Collections.Generic import List
 
-from utils import get_element_name_safe, safe_make_response
+from utils import get_element_name_safe, safe_make_response, normalize_string
 
 logger = logging.getLogger(__name__)
 
@@ -297,5 +297,116 @@ def register_sheet_routes(api):
             logger.error("Failed to export sheets to PDF: %s", str(e))
             return safe_make_response(
                 data={"error": "Failed to export sheets: {}".format(str(e))},
+                status=500,
+            )
+
+    @api.route('/sheet_image/<sheet_number>', methods=["GET"])
+    def sheet_image(doc, sheet_number):
+        """Export a sheet as a PNG image and return encoded data"""
+
+        try:
+            if not doc:
+                return safe_make_response(
+                    data={"error": "No active Revit document"},
+                    status=503,
+                )
+
+            sheet_number = normalize_string(sheet_number)
+            logger.info("Exporting sheet image: %s", sheet_number)
+
+            # Find the sheet by number
+            target_sheet = None
+            sheets = (
+                DB.FilteredElementCollector(doc)
+                .OfCategory(DB.BuiltInCategory.OST_Sheets)
+                .WhereElementIsNotElementType()
+                .ToElements()
+            )
+
+            for sh in sheets:
+                try:
+                    if sh.SheetNumber == sheet_number:
+                        target_sheet = sh
+                        break
+                except Exception:
+                    continue
+
+            if not target_sheet:
+                available = []
+                for sh in sheets:
+                    try:
+                        available.append(sh.SheetNumber)
+                    except Exception:
+                        continue
+
+                return safe_make_response(
+                    data={
+                        "error": "Sheet '{}' not found".format(sheet_number),
+                        "available_sheets": available[:20],
+                    },
+                    status=404,
+                )
+
+            # Prepare export folder
+            output_folder = os.path.join(tempfile.gettempdir(), "RevitMCPExports")
+            if not os.path.exists(output_folder):
+                os.makedirs(output_folder)
+
+            file_prefix = os.path.join(output_folder, "export")
+
+            # Set up export options
+            ieo = DB.ImageExportOptions()
+            ieo.ExportRange = DB.ExportRange.SetOfViews
+            view_ids = List[DB.ElementId]()
+            view_ids.Add(target_sheet.Id)
+            ieo.SetViewsAndSheets(view_ids)
+            ieo.FilePath = file_prefix
+            ieo.HLRandWFViewsFileType = DB.ImageFileType.PNG
+            ieo.ShadowViewsFileType = DB.ImageFileType.PNG
+            ieo.ImageResolution = DB.ImageResolution.DPI_150
+            ieo.ZoomType = DB.ZoomFitType.FitToPage
+            ieo.PixelSize = 1024
+
+            # Export the sheet image
+            doc.ExportImage(ieo)
+
+            matching_files = [
+                os.path.join(output_folder, f)
+                for f in os.listdir(output_folder)
+                if f.endswith('.png')
+            ]
+            matching_files.sort(key=lambda x: os.path.getctime(x), reverse=True)
+
+            if not matching_files:
+                return safe_make_response(
+                    data={"error": "Export failed - no image file was created"},
+                    status=500,
+                )
+
+            exported_file = matching_files[0]
+            with open(exported_file, 'rb') as img_file:
+                img_data = img_file.read()
+
+            encoded_data = base64.b64encode(img_data).decode('utf-8')
+
+            try:
+                os.remove(exported_file)
+            except Exception as e:
+                logger.warning("Could not clean up temporary file: %s", str(e))
+
+            return safe_make_response(
+                data={
+                    "image_data": encoded_data,
+                    "content_type": "image/png",
+                    "sheet_number": sheet_number,
+                    "file_size_bytes": len(img_data),
+                    "export_success": True,
+                }
+            )
+
+        except Exception as e:
+            logger.error("Failed to export sheet image '%s': %s", sheet_number, str(e))
+            return safe_make_response(
+                data={"error": "Failed to export sheet image: {}".format(str(e))},
                 status=500,
             )

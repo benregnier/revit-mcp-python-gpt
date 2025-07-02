@@ -17,6 +17,11 @@ def register_view_tools(mcp, revit_get, revit_post, revit_image):
         return await revit_get("/list_views/", ctx)
 
     @mcp.tool()
+    async def get_sheet_image(sheet_number: str, ctx: Context = None) -> str:
+        """Export a sheet as an image"""
+        return await revit_image(f"/sheet_image/{sheet_number}", ctx)
+
+    @mcp.tool()
     async def get_current_view_info(ctx: Context = None) -> str:
         """
         Get detailed information about the currently active view in Revit.
